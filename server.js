@@ -20,6 +20,11 @@ app.get('/locations', (req, res) =>{
 
   // get the data from geo.json
   let locationData = require('./data/geo.json');
+  // handles error
+  if (locationData === '' || locationData === null){
+    let sorry = 'error status 500'
+    res.send(sorry)
+  }
   let location = new Location(city, locationData[0])
   res.json(location);
 })
@@ -37,7 +42,12 @@ function Location(city, data){
 // get data from client
 app.get('/weather', (req, res) => {
   let weatherData= require('./data/darksky.json');
-  
+  // handles error
+  if (weatherData === '' || weatherData === null){
+    let sorry = 'error status 500'
+    res.send(sorry)
+  }
+
   let weatherArr = [];
   
   weatherData.daily.data.forEach(value =>{
@@ -50,7 +60,7 @@ app.get('/weather', (req, res) => {
 // constructor for weather
 function Weather(value){
   this.forecast = value.summary;
-  this.time = new Date(value.time * 1000).toDateString()
+  this.time = new Date(value.time * 1000).toDateString() // changes epoch time to date format
 }
 
 // epoch time jan 1st 1970
