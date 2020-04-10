@@ -2,7 +2,7 @@
 
 // get variables from dotenv
 require('dotenv').config();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 
 // packages we are going to use
 const cors = require('cors');
@@ -37,21 +37,23 @@ function Location(city, data){
 // get data from client
 app.get('/weather', (req, res) => {
   let weatherData= require('./data/darksky.json');
-
+  
   let weatherArr = [];
   
-  weatherData.data.forEach(value =>{
+  weatherData.daily.data.forEach(value =>{
     let weather = new Weather(value)
     weatherArr.push(weather);
   })
+  res.send(weatherArr);
 })
 
 // constructor for weather
 function Weather(value){
   this.forecast = value.summary;
-  
+  this.time = new Date(value.time * 1000).toDateString()
 }
 
+// epoch time jan 1st 1970
 
 // turn on server
 app.listen(PORT, () =>{
