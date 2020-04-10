@@ -20,3 +20,13 @@
 ## Credits and Collaborations
 <!-- Give credit (and a link) to other people or resources that helped you build this application. -->
 -->
+
+Number and name of feature: _node, npm and express____
+
+Estimate of time needed to complete: _3 hours__
+
+Start time: _6:30 PM__
+
+Finish time: _9:35 PM____
+
+Actual time needed to complete: _3 hrs____
