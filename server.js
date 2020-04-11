@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 3000;
 // packages we are going to use
 const cors = require('cors');
 const express = require('express');
-
+const superagent = require('superagent')
 
 const app = express();
 app.use(cors());
@@ -17,16 +17,29 @@ app.use(cors());
 // git the data from client
 app.get('/locations', (req, res) =>{
   let city = req.query.city;
-
-  // get the data from geo.json
-  let locationData = require('./data/geo.json');
-  // handles error
-  if (locationData === '' || locationData === null){
-    let sorry = 'error status 500'
-    res.send(sorry)
+  const url = 'https://us1.locationiq.com/v1/search.php'
+  const queryStringParams = {
+    key: process.env.LOCATION_TOKEN,
+    q: city,
+    format: 'json',
+    limit: 1,
   }
-  let location = new Location(city, locationData[0])
-  res.json(location);
+  superagent.get(url)
+    .query(queryStringParams)
+    .then( data => {
+      
+  // get the data from https://us1.locationiq.com/v1/search.php
+    let locationData = data.body[0];
+    // handles error
+    if (locationData === '' || locationData === null){
+      let sorry = 'error status 500'
+      res.send(sorry)
+    }
+    let location = new Location(city, locationData)
+    res.json(location);
+  })
+
+  
 })
 
 // Location constructor function
