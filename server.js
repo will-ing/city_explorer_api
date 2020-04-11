@@ -57,7 +57,7 @@ app.get('/weather', (req, res) => {
   res.send(weatherArr);
 })
 
-// constructor for weather
+// constructor for weather; this is how the client wants the data.
 function Weather(value){
   this.forecast = value.summary;
   this.time = new Date(value.time * 1000).toDateString() // changes epoch time to date format
