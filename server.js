@@ -10,7 +10,10 @@ const express = require('express');
 const superagent = require('superagent')
 
 const app = express();
+
 app.use(cors());
+app.use(errorHandling());
+
 
 ////// Handle location /////////
 
@@ -69,8 +72,13 @@ function Weather(value){
   this.time = new Date(value.time * 1000).toDateString() // changes epoch time to date format
 }
 
+
+///// handle trails /////////
+
+// data for client
 app.get('/trails', (req, res) => {
   let url = 'https://www.hikingproject.com/data/get-trails?'
+  // object of query requirements ?
   const queryStringParams = {
     lat: req.query.latitude,
     lon: req.query.longitude,
@@ -80,10 +88,8 @@ app.get('/trails', (req, res) => {
 
   superagent.get(url)
     .query(queryStringParams)
-    .then(data =>{
-      console.log(data.body.trails)
+    .then(data =>{ // promise that returns the data from server 
       let trail = data.body.trails;
-   
       let allTrails = trail.map(value =>{
         return new Trail(value)
       })
@@ -91,18 +97,30 @@ app.get('/trails', (req, res) => {
     })
 })
 
+// prepares data to go in the correct format to the client from server
 function Trail(info){
   this.name = info.name;
-  this.location = info.location
-  this.length = info.length
-  this.stars = info.stars
-  this.star_votes = info.starVotes
-  this.summary = info.summary
-  this.trail_url = info.url
-  this.conditions = info.conditionDetails
-  this.condition_date = info.conditionDate
-  this.condition_time = info.conditionDate
+  this.location = info.location;
+  this.length = info.length;
+  this.stars = info.stars;
+  this.star_votes = info.starVotes;
+  this.summary = info.summary;
+  this.trail_url = info.url;
+  this.conditions = info.conditionDetails;
+  this.condition_date = new Date(info.conditionDate).toString().slice(0, 15);
+  this.condition_time = new Date(info.conditionDate).toString().slice(16,25);
 }
+
+// handles error
+function errorHandling(err, req, res, next){
+  if(res.headersSent){
+    return next(err);
+  }res.status(500).send({
+    status: 500,
+    responseText: 'Contact ninja support'
+  })
+}
+
 
 // turn on server
 app.listen(PORT, () =>{
