@@ -15,7 +15,7 @@ app.use(cors());
 ////// Handle location /////////
 
 // git the data from client
-app.get('/locations', handleLocation)
+app.get('/location', handleLocation)
 
 function handleLocation(req, res){
   let city = req.query.city;
@@ -32,11 +32,6 @@ function handleLocation(req, res){
 
     // get the data from https://us1.locationiq.com/v1/search.php
       let locationData = data.body[0];
-      // handles error
-      if (locationData === '' || locationData === null){
-        let sorry = 'error status 500'
-        res.send(sorry)
-      }
       let location = new Location(city, locationData)
       res.json(location);
     });
@@ -57,26 +52,15 @@ app.get('/weather', (req, res) => {
   let key = process.env.WEATHER_TOKEN;
   let lat = req.query.latitude;
   let lon = req.query.longitude;    
-  let url = `https://api.darksky.net/forecast/${key}/${lat}/${lon}`
+  let url = `https://api.darksky.net/forecast/${key}/${lat},${lon}`
+
   superagent.get(url)
-
     .then( data =>{
-      console.log(data)
-      // handles error
-      if (url === '' || url === null){
-        let sorry = 'error status 500'
-        res.send(sorry)
-      }
-
-      let weatherArr = [];
-      
-      url.daily.data.map(value =>{
-        let weather = new Weather(value)
-        weatherArr.push(weather);
-      })
+      let weatherArr = data.body.daily.data.map(value =>{
+        return new Weather(value)
+      }) 
       res.send(weatherArr);
    })
-
 })
 
 // constructor for weather; this is how the client wants the data.
@@ -85,7 +69,40 @@ function Weather(value){
   this.time = new Date(value.time * 1000).toDateString() // changes epoch time to date format
 }
 
-// epoch time jan 1st 1970
+app.get('/trails', (req, res) => {
+  let url = 'https://www.hikingproject.com/data/get-trails?'
+  const queryStringParams = {
+    lat: req.query.latitude,
+    lon: req.query.longitude,
+    maxDistance: req.query.maxDistance,
+    key: process.env.TRAIL_TOKEN,
+  }
+
+  superagent.get(url)
+    .query(queryStringParams)
+    .then(data =>{
+      console.log(data.body.trails)
+      let trail = data.body.trails;
+   
+      let allTrails = trail.map(value =>{
+        return new Trail(value)
+      })
+      res.json(allTrails);
+    })
+})
+
+function Trail(info){
+  this.name = info.name;
+  this.location = info.location
+  this.length = info.length
+  this.stars = info.stars
+  this.star_votes = info.starVotes
+  this.summary = info.summary
+  this.trail_url = info.url
+  this.conditions = info.conditionDetails
+  this.condition_date = info.conditionDate
+  this.condition_time = info.conditionDate
+}
 
 // turn on server
 app.listen(PORT, () =>{
