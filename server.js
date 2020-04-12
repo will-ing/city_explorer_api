@@ -15,9 +15,11 @@ app.use(cors());
 ////// Handle location /////////
 
 // git the data from client
-app.get('/locations', (req, res) =>{
+app.get('/locations', handleLocation)
+
+function handleLocation(req, res){
   let city = req.query.city;
-  const url = 'https://us1.locationiq.com/v1/search.php'
+  const url = 'https://us1.locationiq.com/v1/search.php';
   const queryStringParams = {
     key: process.env.LOCATION_TOKEN,
     q: city,
@@ -27,20 +29,18 @@ app.get('/locations', (req, res) =>{
   superagent.get(url)
     .query(queryStringParams)
     .then( data => {
-      
-  // get the data from https://us1.locationiq.com/v1/search.php
-    let locationData = data.body[0];
-    // handles error
-    if (locationData === '' || locationData === null){
-      let sorry = 'error status 500'
-      res.send(sorry)
-    }
-    let location = new Location(city, locationData)
-    res.json(location);
-  })
 
-  
-})
+    // get the data from https://us1.locationiq.com/v1/search.php
+      let locationData = data.body[0];
+      // handles error
+      if (locationData === '' || locationData === null){
+        let sorry = 'error status 500'
+        res.send(sorry)
+      }
+      let location = new Location(city, locationData)
+      res.json(location);
+    });
+  }
 
 // Location constructor function
 function Location(city, data){
@@ -54,20 +54,29 @@ function Location(city, data){
 
 // get data from client
 app.get('/weather', (req, res) => {
-  let weatherData= require('./data/darksky.json');
-  // handles error
-  if (weatherData === '' || weatherData === null){
-    let sorry = 'error status 500'
-    res.send(sorry)
-  }
+  let key = process.env.WEATHER_TOKEN;
+  let lat = req.query.latitude;
+  let lon = req.query.longitude;    
+  let url = `https://api.darksky.net/forecast/${key}/${lat}/${lon}`
+  superagent.get(url)
 
-  let weatherArr = [];
-  
-  weatherData.daily.data.forEach(value =>{
-    let weather = new Weather(value)
-    weatherArr.push(weather);
-  })
-  res.send(weatherArr);
+    .then( data =>{
+      console.log(data)
+      // handles error
+      if (url === '' || url === null){
+        let sorry = 'error status 500'
+        res.send(sorry)
+      }
+
+      let weatherArr = [];
+      
+      url.daily.data.map(value =>{
+        let weather = new Weather(value)
+        weatherArr.push(weather);
+      })
+      res.send(weatherArr);
+   })
+
 })
 
 // constructor for weather; this is how the client wants the data.
