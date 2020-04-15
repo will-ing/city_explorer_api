@@ -12,7 +12,7 @@ const superagent = require('superagent')
 const app = express();
 
 app.use(cors());
-app.use(errorHandling());
+app.use(errorHandling);
 
 
 ////// Handle location /////////
@@ -112,6 +112,7 @@ function Trail(info){
 }
 
 // handles error
+//// https://expressjs.com/en/guide/error-handling.html
 function errorHandling(err, req, res, next){
   if(res.headersSent){
     return next(err);
