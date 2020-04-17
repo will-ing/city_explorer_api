@@ -18,61 +18,45 @@ client.connect(); // this is a promise
 
 
 app.use(cors());
-// app.use(errorHandling);
+app.use(errorHandling);
 
 ////// Handle location /////////
 
 // git the data from client
 app.get('/location', (req, res) => {
-  const SQL = 'SELECT * FROM locations'
-  client.query(SQL)
-  .then(value => {
-    if(value.rows.length > 0){
-      handleDatabase;
-    }else{
-      handleLocation;
-    }
-  })
-})
-  
-  /* 
-    if location is in DB then pull from DB
-     else run superagent and get location from api
-  */
-   
-
-function handleDatabase(){
-  client.query(SQL)
-    .then(result => {
-      res.status(200).json(result.rows);
-    })
-}
-
-
-//handle the location
-function handleLocation(req, res){
+  let SQL = 'SELECT * FROM locations WHERE search_query =$1;';
   let city = req.query.city;
-  const url = 'https://us1.locationiq.com/v1/search.php';
-  const queryStringParams = {
-    key: process.env.LOCATION_TOKEN,
-    q: city,
-    format: 'json',
-    limit: 1,
-  }
-  const SQL = `INSERT INTO locations (search_query, formatted_query, latitude, longitude)
-               VALUES($1, $2, $3, $4);`
-  let VALUES = [req.query.search_query, req.query.formatted_query, req.query.latitude, req.query.longitude];
+  let VALUES = [city];
+  client.query(SQL, VALUES)
+  .then(result => {
+    if(result.rows.length > 0){
+      res.status(200).json(result.rows[0]);
+    }else{
 
-  superagent.get(url)
-    .query(queryStringParams)
-    .then( data => {
-      // get the data from https://us1.locationiq.com/v1/search.php
-      let locationData = data.body[0];
-      let location = new Location(city, locationData)
-      client.query(SQL, VALUES)
-      res.json(location);
-    });
-}
+      let city = req.query.city;
+      const url = 'https://us1.locationiq.com/v1/search.php';
+      const queryStringParams = {
+        key: process.env.LOCATION_TOKEN,
+        q: city,
+        format: 'json',
+        limit: 1,
+      }
+      const SQL = `INSERT INTO locations (search_query, formatted_query, latitude, longitude)
+                  VALUES($1, $2, $3, $4);`
+      let VALUES = [req.query.search_query, req.query.formatted_query, req.query.latitude, req.query.longitude];
+
+      superagent.get(url)
+        .query(queryStringParams)
+        .then( data => {
+          // get the data from https://us1.locationiq.com/v1/search.php
+          let locationData = data.body[0];
+          let location = new Location(city, locationData)
+          client.query(SQL, VALUES)
+          res.json(location);
+        });
+  }
+})
+})
 
 // Location constructor function
 function Location(city, data){
