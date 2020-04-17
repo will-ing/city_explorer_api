@@ -11,9 +11,14 @@ const superagent = require('superagent')
 const app = express();
 const pg = require('pg');
 
+
 //connect to DB 
 const client = new pg.Client(process.env.DATABASE_URL);
 client.connect(); // this is a promise
+
+app.use(cors());
+app.use(errorHandling);
+
 
 
 
@@ -130,6 +135,7 @@ function Trail(info){
 }
 
 // handles error
+//// https://expressjs.com/en/guide/error-handling.html
 function errorHandling(err, req, res, next){
   if(res.headersSent){
     return next(err);
