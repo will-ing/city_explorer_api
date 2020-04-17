@@ -8,12 +8,10 @@ const PORT = process.env.PORT || 3000;
 const cors = require('cors');
 const express = require('express');
 const superagent = require('superagent')
-
 const app = express();
 
 app.use(cors());
-app.use(errorHandling());
-
+app.use(errorHandling);
 
 ////// Handle location /////////
 
