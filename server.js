@@ -4,20 +4,52 @@
 require('dotenv').config();
 const PORT = process.env.PORT || 3000;
 
-// packages we are going to use
+// import packages we are going to use
 const cors = require('cors');
 const express = require('express');
 const superagent = require('superagent')
 const app = express();
+const pg = require('pg');
+
+//connect to DB 
+const client = new pg.Client(process.env.DATABASE_URL);
+client.connect(); // this is a promise
+
+
 
 app.use(cors());
-app.use(errorHandling);
+// app.use(errorHandling);
 
 ////// Handle location /////////
 
 // git the data from client
-app.get('/location', handleLocation)
+app.get('/location', (req, res) => {
+  const SQL = 'SELECT * FROM locations'
+  client.query(SQL)
+  .then(value => {
+    if(value.rows.length > 0){
+      handleDatabase;
+    }else{
+      handleLocation;
+    }
+  })
+})
+  
+  /* 
+    if location is in DB then pull from DB
+     else run superagent and get location from api
+  */
+   
 
+function handleDatabase(){
+  client.query(SQL)
+    .then(result => {
+      res.status(200).json(result.rows);
+    })
+}
+
+
+//handle the location
 function handleLocation(req, res){
   let city = req.query.city;
   const url = 'https://us1.locationiq.com/v1/search.php';
@@ -27,16 +59,20 @@ function handleLocation(req, res){
     format: 'json',
     limit: 1,
   }
+  const SQL = `INSERT INTO locations (search_query, formatted_query, latitude, longitude)
+               VALUES($1, $2, $3, $4);`
+  let VALUES = [req.query.search_query, req.query.formatted_query, req.query.latitude, req.query.longitude];
+
   superagent.get(url)
     .query(queryStringParams)
     .then( data => {
-
-    // get the data from https://us1.locationiq.com/v1/search.php
+      // get the data from https://us1.locationiq.com/v1/search.php
       let locationData = data.body[0];
       let location = new Location(city, locationData)
+      client.query(SQL, VALUES)
       res.json(location);
     });
-  }
+}
 
 // Location constructor function
 function Location(city, data){
