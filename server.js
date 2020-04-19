@@ -9,15 +9,10 @@ const express = require('express');
 const pg = require('pg');
 
 //connect to DB 
-const client = new pg.Client(process.env.DATABASE_URL);
 const PORT = process.env.PORT;
 const app = express();
 
-client.connect(); // this is a promise
-
 app.use(cors());
-// app.use(errorHandling);
-
 
 // Libraries
 const handleLocation = require('./library/handleLocation');
